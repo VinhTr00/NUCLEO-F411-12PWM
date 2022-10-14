@@ -58,8 +58,7 @@ void MX_FREERTOS_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-osSemaphoreId_t xSemaphore1 = NULL, xSemaphore2 = NULL, xSemaphore3 = NULL, xSemaphore4,
-				xSemaphore5, xSemaphore6, xSemaphore7, xSemaphore8;
+
 /* USER CODE END 0 */
 
 /**
@@ -69,14 +68,7 @@ osSemaphoreId_t xSemaphore1 = NULL, xSemaphore2 = NULL, xSemaphore3 = NULL, xSem
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-	xSemaphore1 = osSemaphoreNew(1, 0, NULL);
-	xSemaphore2 = osSemaphoreNew(1, 0, NULL);
-	xSemaphore3 = osSemaphoreNew(1, 0, NULL);
-	xSemaphore4 = osSemaphoreNew(1, 0, NULL);
-	xSemaphore5 = osSemaphoreNew(1, 0, NULL);
-	xSemaphore6 = osSemaphoreNew(1, 0, NULL);
-	xSemaphore7 = osSemaphoreNew(1, 0, NULL);
-	xSemaphore8 = osSemaphoreNew(1, 0, NULL);
+
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -101,8 +93,8 @@ int main(void)
   MX_TIM3_Init();
   MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
-  servo_init();
   handle_AUX_signal_init();
+  servo_init();
   /* USER CODE END 2 */
 
   /* Init scheduler */

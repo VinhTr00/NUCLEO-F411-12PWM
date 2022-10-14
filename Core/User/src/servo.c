@@ -15,7 +15,8 @@ extern osSemaphoreId_t xSemaphore1, xSemaphore2, xSemaphore3, xSemaphore4,
 /* Private function prototypes -----------------------------------------------*/
 static void StartServo(void * argument);
 /* Private functions ---------------------------------------------------------*/
-void timer_pwm_init(void){
+
+static void timer_pwm_init(void){
 	//TIM 3: Channel 1->4
 	HAL_TIM_PWM_Start(&htim3,TIM_CHANNEL_1);
 	HAL_TIM_PWM_Start(&htim3,TIM_CHANNEL_2);
