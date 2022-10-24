@@ -27,6 +27,7 @@
 /* USER CODE BEGIN Includes */
 #include "servo.h"
 #include "handle_interrupt.h"
+#include "service_uart.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -68,7 +69,6 @@ void MX_FREERTOS_Init(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -92,9 +92,12 @@ int main(void)
   MX_USART2_UART_Init();
   MX_TIM3_Init();
   MX_TIM4_Init();
+  MX_TIM1_Init();
+  MX_USART6_UART_Init();
   /* USER CODE BEGIN 2 */
   handle_AUX_signal_init();
   servo_init();
+  init_service_uart();
   /* USER CODE END 2 */
 
   /* Init scheduler */
