@@ -10,7 +10,7 @@
 ![PACKET](/img/packet.png)
 
 | Byte index    |      C version                |  Value    | Explanation                                   |
-|:----------:   | -------------                 | ------    |------                                         |
+|:----------:   | -------------                 | :------:    |------                                         |
 | 0             | ```uint8_t beginByte```       | 0x9B      | Begin Bytes                                   |
 | 1             | ```uint8_t dataLength```      | 0x06      | Frame Length                                  |
 | 2             | ```uint8_t channel```         | 0 - 16    | Number of channel servo that want to control  |
