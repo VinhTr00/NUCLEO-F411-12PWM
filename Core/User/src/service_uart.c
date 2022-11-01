@@ -15,7 +15,7 @@ uint8_t aRxBuffer, value, ptBufferUART6[RINGBUF_BUFF_LEN];
 ServiceUart serviceUART;
 osMessageQueueId_t queue_config_servo, queue_config_pwm;
 uint8_t TxBuffOK[10] = "OK!!!\r\n";
-uint8_t TxBuffError[10] = "Error!!!\r\n";
+uint8_t TxBuffWIP[10] = "WIP!!!\r\n";
 
 void init_service_uart(void){
 	ringbuf = &ring;
@@ -26,17 +26,21 @@ void init_service_uart(void){
 }
 
 ParseStatusType service_uart_parse(uint8_t recByte, ServiceUart *serviceUart, ReceiveStatusType *recStatus){
-	if (recByte == 0x9C){
+	if (recByte == 0x9B){
 		*recStatus = BEGIN_BYTE;
 	}
 	switch (*recStatus){
 		case PARSE_IDLE:
-			serviceUart->parseStatus = PARSE_WIP;
+			serviceUart->parseStatus = PARSE_ERROR;
+			return PARSE_ERROR;
 			break;
 		case BEGIN_BYTE:
-			serviceUart->beginByte = recByte;
-			serviceUart->parseStatus = PARSE_WIP;
-			*recStatus = DATA_LENGTH;
+			if (recByte != 0x9B) *recStatus = PARSE_IDLE;
+			else {
+				serviceUart->beginByte = recByte;
+				serviceUart->parseStatus = PARSE_WIP;
+				*recStatus = DATA_LENGTH;
+			}
 			break;
 		case DATA_LENGTH:
 			if (recByte != 0x06) *recStatus = PARSE_IDLE;
@@ -47,19 +51,28 @@ ParseStatusType service_uart_parse(uint8_t recByte, ServiceUart *serviceUart, Re
 			}
 			break;
 		case CHANNEL:
-			serviceUart->channel = recByte;
-			serviceUart->parseStatus = PARSE_WIP;
-			*recStatus = MIN_PWM;
+			if (recByte > 16) *recStatus = PARSE_IDLE;
+			else {
+				serviceUart->channel = recByte;
+				serviceUart->parseStatus = PARSE_WIP;
+				*recStatus = MIN_PWM;
+			}
 			break;
 		case MIN_PWM:
-			serviceUart->min_pwm = recByte;
-			serviceUart->parseStatus = PARSE_WIP;
-			*recStatus = MAX_PWM;
+			if (recByte<10 || recByte>25) *recStatus = PARSE_IDLE;
+			else {
+				serviceUart->min_pwm = recByte;
+				serviceUart->parseStatus = PARSE_WIP;
+				*recStatus = MAX_PWM;
+			}
 			break;
 		case MAX_PWM:
-			serviceUart->max_pwm = recByte;
-			serviceUart->parseStatus = PARSE_WIP;
-			*recStatus = END_BYTE;
+			if (recByte<10 || recByte>25) *recStatus = PARSE_IDLE;
+			else {
+				serviceUart->max_pwm = recByte;
+				serviceUart->parseStatus = PARSE_WIP;
+				*recStatus = END_BYTE;
+			}
 			break;
 		case END_BYTE:
 			if (recByte != 0xFE) *recStatus = PARSE_IDLE;
@@ -67,11 +80,10 @@ ParseStatusType service_uart_parse(uint8_t recByte, ServiceUart *serviceUart, Re
 				serviceUart->endByte = recByte;
 				serviceUart->parseStatus = PARSE_COMPLETE;
 				*recStatus = BEGIN_BYTE;
+				return PARSE_OK;
 			}
 			break;
 	}
-	if (serviceUart->parseStatus == PARSE_COMPLETE) return PARSE_OK;
-	else return PARSE_ERROR;
 }
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
@@ -85,5 +97,3 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 		}
 	}
 }
-
-

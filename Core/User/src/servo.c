@@ -22,7 +22,7 @@ static void StartServo(void * argument);
 
 static void timer_pwm_init(void){
 	//TIM 1: Channel 1->4
-	HAL_TIM_PWM_Start(&htim1,TIM_CHANNEL_1);
+	HAL_TIMEx_PWMN_Start(&htim1,TIM_CHANNEL_1);
 	HAL_TIM_PWM_Start(&htim1,TIM_CHANNEL_2);
 	HAL_TIM_PWM_Start(&htim1,TIM_CHANNEL_3);
 	HAL_TIM_PWM_Start(&htim1,TIM_CHANNEL_4);
@@ -43,7 +43,6 @@ static void timer_pwm_init(void){
 	configPWM.max_pwm = 20;
 	min_pwm = (configPWM.min_pwm)*100;
 	max_pwm = (configPWM.max_pwm)*100;
-
 }
 
 void servo_init(void){
@@ -57,6 +56,12 @@ void servo_init(void){
 	timer_pwm_init();
 }
 
+void Start_PWM_Servo(TIM_HandleTypeDef *pTim, uint16_t channel, uint16_t pwm_max, uint16_t pwm_min){
+	__HAL_TIM_SetCompare(pTim, channel, pwm_max);
+	osDelay(2000);
+	__HAL_TIM_SetCompare(pTim, channel, pwm_min);
+}
+
 static void StartServo(void * argument){
 	while (1){
 		if (osMessageQueueGet(queue_config_pwm, &configPWM, 0, 0) == osOK){
@@ -64,64 +69,40 @@ static void StartServo(void * argument){
 			max_pwm = (configPWM.max_pwm)*100;
 		}
 		if (osSemaphoreAcquire(xSemaphore1, pdMS_TO_TICKS(50)) == osOK){
-			__HAL_TIM_SetCompare(&htim3,TIM_CHANNEL_1,max_pwm);
-			osDelay(5000);
-			__HAL_TIM_SetCompare(&htim3,TIM_CHANNEL_1,min_pwm);
+			Start_PWM_Servo(&htim3, TIM_CHANNEL_1, max_pwm, min_pwm);
 		}
 		else if (osSemaphoreAcquire(xSemaphore2, pdMS_TO_TICKS(50)) == osOK){
-			__HAL_TIM_SetCompare(&htim3,TIM_CHANNEL_2,max_pwm);
-			osDelay(2000);
-			__HAL_TIM_SetCompare(&htim3,TIM_CHANNEL_2,min_pwm);
+			Start_PWM_Servo(&htim3, TIM_CHANNEL_2, max_pwm, min_pwm);
 		}
 		else if (osSemaphoreAcquire(xSemaphore3, pdMS_TO_TICKS(50)) == osOK){
-			__HAL_TIM_SetCompare(&htim3,TIM_CHANNEL_3,max_pwm);
-			osDelay(2000);
-			__HAL_TIM_SetCompare(&htim3,TIM_CHANNEL_3,min_pwm);
+			Start_PWM_Servo(&htim3, TIM_CHANNEL_3, max_pwm, min_pwm);
 		}
 		else if (osSemaphoreAcquire(xSemaphore4, pdMS_TO_TICKS(50)) == osOK){
-			__HAL_TIM_SetCompare(&htim3,TIM_CHANNEL_4,max_pwm);
-			osDelay(2000);
-			__HAL_TIM_SetCompare(&htim3,TIM_CHANNEL_4,min_pwm);
+			Start_PWM_Servo(&htim3, TIM_CHANNEL_4, max_pwm, min_pwm);
 		}
 		else if (osSemaphoreAcquire(xSemaphore5, pdMS_TO_TICKS(50)) == osOK){
-			__HAL_TIM_SetCompare(&htim4,TIM_CHANNEL_1,max_pwm);
-			osDelay(2000);
-			__HAL_TIM_SetCompare(&htim4,TIM_CHANNEL_1,min_pwm);
+			Start_PWM_Servo(&htim4, TIM_CHANNEL_1, max_pwm, min_pwm);
 		}
 		else if (osSemaphoreAcquire(xSemaphore6, pdMS_TO_TICKS(50)) == osOK){
-			__HAL_TIM_SetCompare(&htim4,TIM_CHANNEL_2,max_pwm);
-			osDelay(2000);
-			__HAL_TIM_SetCompare(&htim4,TIM_CHANNEL_2,min_pwm);
+			Start_PWM_Servo(&htim4, TIM_CHANNEL_2, max_pwm, min_pwm);
 		}
 		else if (osSemaphoreAcquire(xSemaphore7, pdMS_TO_TICKS(50)) == osOK){
-			__HAL_TIM_SetCompare(&htim4,TIM_CHANNEL_3,max_pwm);
-			osDelay(2000);
-			__HAL_TIM_SetCompare(&htim4,TIM_CHANNEL_3,min_pwm);
+			Start_PWM_Servo(&htim4, TIM_CHANNEL_3, max_pwm, min_pwm);
 		}
 		else if (osSemaphoreAcquire(xSemaphore8, pdMS_TO_TICKS(50)) == osOK){
-			__HAL_TIM_SetCompare(&htim4,TIM_CHANNEL_4,max_pwm);
-			osDelay(2000);
-			__HAL_TIM_SetCompare(&htim4,TIM_CHANNEL_4,min_pwm);
+			Start_PWM_Servo(&htim4, TIM_CHANNEL_4, max_pwm, min_pwm);
 		}
 		else if (osSemaphoreAcquire(xSemaphore9, pdMS_TO_TICKS(50)) == osOK){
-			__HAL_TIM_SetCompare(&htim1,TIM_CHANNEL_1,max_pwm);
-			osDelay(2000);
-			__HAL_TIM_SetCompare(&htim1,TIM_CHANNEL_1,min_pwm);
+			Start_PWM_Servo(&htim1, TIM_CHANNEL_1, max_pwm, min_pwm);
 		}
 		else if (osSemaphoreAcquire(xSemaphore10, pdMS_TO_TICKS(50)) == osOK){
-			__HAL_TIM_SetCompare(&htim1,TIM_CHANNEL_2,max_pwm);
-			osDelay(2000);
-			__HAL_TIM_SetCompare(&htim1,TIM_CHANNEL_2,min_pwm);
+			Start_PWM_Servo(&htim1, TIM_CHANNEL_2, max_pwm, min_pwm);
 		}
 		else if (osSemaphoreAcquire(xSemaphore11, pdMS_TO_TICKS(50)) == osOK){
-			__HAL_TIM_SetCompare(&htim1,TIM_CHANNEL_3,max_pwm);
-			osDelay(2000);
-			__HAL_TIM_SetCompare(&htim1,TIM_CHANNEL_3,min_pwm);
+			Start_PWM_Servo(&htim1, TIM_CHANNEL_3, max_pwm, min_pwm);
 		}
 		else if (osSemaphoreAcquire(xSemaphore12, pdMS_TO_TICKS(50)) == osOK){
-			__HAL_TIM_SetCompare(&htim1,TIM_CHANNEL_4,max_pwm);
-			osDelay(2000);
-			__HAL_TIM_SetCompare(&htim1,TIM_CHANNEL_4,min_pwm);
+			Start_PWM_Servo(&htim1, TIM_CHANNEL_4, max_pwm, min_pwm);
 		}
 	}
 }
