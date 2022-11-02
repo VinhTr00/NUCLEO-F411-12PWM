@@ -13,15 +13,13 @@ static volatile RINGBUF *ringbuf;
 
 uint8_t aRxBuffer, value, ptBufferUART6[RINGBUF_BUFF_LEN];
 ServiceUart serviceUART;
-osMessageQueueId_t queue_config_servo, queue_config_pwm;
+osMessageQueueId_t queue_config;
 uint8_t TxBuffOK[10] = "OK!!!\r\n";
-uint8_t TxBuffWIP[10] = "WIP!!!\r\n";
 
 void init_service_uart(void){
 	ringbuf = &ring;
 	RINGBUF_Init((RINGBUF*)ringbuf, ptBufferUART6, RINGBUF_BUFF_LEN);
-	queue_config_servo = osMessageQueueNew(1, sizeof(ServiceUart), NULL);
-	queue_config_pwm = osMessageQueueNew(1, sizeof(ServiceUart), NULL);
+	queue_config = osMessageQueueNew(1, sizeof(ServiceUart), NULL);
 	HAL_UART_Receive_IT(&huart6, &aRxBuffer, RX_BUFFER_SIZE);
 }
 
@@ -91,8 +89,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 		RINGBUF_Put((RINGBUF *) ringbuf, aRxBuffer);
 		RINGBUF_Get((RINGBUF *) ringbuf, &value);
 		if (service_uart_parse(value, &serviceUART, &ReceiverUART6) == PARSE_OK){
-			osMessageQueuePut(queue_config_servo, &serviceUART, 0, 0);
-			osMessageQueuePut(queue_config_pwm, &serviceUART, 0, 0);
+			osMessageQueuePut(queue_config, &serviceUART, 0, 0);
 			HAL_UART_Transmit(&huart6, TxBuffOK, sizeof(TxBuffOK), 1000);
 		}
 	}

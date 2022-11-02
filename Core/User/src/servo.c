@@ -9,15 +9,16 @@
 #define SERVO_THREAD_PRIO    (osPriority_t) osPriorityNormal
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
-osThreadId_t servoHandle;
-extern osSemaphoreId_t xSemaphore1, xSemaphore2, xSemaphore3, xSemaphore4,
-					   xSemaphore5, xSemaphore6, xSemaphore7, xSemaphore8,
-					   xSemaphore9, xSemaphore10, xSemaphore11, xSemaphore12;
-extern osMessageQueueId_t queue_config_pwm;
-ServiceUart configPWM;
-uint16_t max_pwm, min_pwm;
+osThreadId_t servoHandle, dataHandle;
+osMessageQueueId_t queue_data, queue_servo;
+
+extern osSemaphoreId_t xSemaphore;
+
+extern osMessageQueueId_t queue_config;
+
 /* Private function prototypes -----------------------------------------------*/
 static void StartServo(void * argument);
+static void StartHandleData(void * argument);
 /* Private functions ---------------------------------------------------------*/
 
 static void timer_pwm_init(void){
@@ -39,10 +40,8 @@ static void timer_pwm_init(void){
 	HAL_TIM_PWM_Start(&htim4,TIM_CHANNEL_3);
 	HAL_TIM_PWM_Start(&htim4,TIM_CHANNEL_4);
 
-	configPWM.min_pwm = 10;
-	configPWM.max_pwm = 20;
-	min_pwm = (configPWM.min_pwm)*100;
-	max_pwm = (configPWM.max_pwm)*100;
+	queue_data = osMessageQueueNew(10, sizeof(uint8_t), NULL);
+	queue_servo = osMessageQueueNew(1, sizeof(ServiceUart), NULL);
 }
 
 void servo_init(void){
@@ -53,6 +52,15 @@ void servo_init(void){
 	};
 	servoHandle = osThreadNew(StartServo, NULL, &servoTask);
 	(void)servoHandle;
+
+	const osThreadAttr_t dataTask = {
+		.name = "DataTask",
+		.stack_size = 256*4,
+		.priority = SERVO_THREAD_PRIO,
+	};
+	dataHandle = osThreadNew(StartHandleData, NULL, &dataTask);
+	(void)dataHandle;
+
 	timer_pwm_init();
 }
 
@@ -60,49 +68,78 @@ void Start_PWM_Servo(TIM_HandleTypeDef *pTim, uint16_t channel, uint16_t pwm_max
 	__HAL_TIM_SetCompare(pTim, channel, pwm_max);
 	osDelay(2000);
 	__HAL_TIM_SetCompare(pTim, channel, pwm_min);
+	osDelay(500);
+	__HAL_TIM_SetCompare(pTim, channel, 0);
+}
+
+static void StartHandleData(void * argument){
+	ServiceUart config;
+	uint8_t counting = 0, number_servo = 9;
+	while (1){
+		if (osMessageQueueGet(queue_config, &config, 0, 0) == osOK){
+			number_servo = config.channel;
+			osMessageQueuePut(queue_servo, &config, 0, 0);
+		}
+		if (osSemaphoreAcquire(xSemaphore, pdMS_TO_TICKS(50)) == osOK){
+			counting++;
+			if (counting > number_servo) counting = 0;
+			osMessageQueuePut(queue_data, &counting, 0, 0);
+		}
+	}
 }
 
 static void StartServo(void * argument){
+	ServiceUart config;
+	uint8_t mode = 0;
+	uint16_t max_pwm = 2000, min_pwm = 1000;
 	while (1){
-		if (osMessageQueueGet(queue_config_pwm, &configPWM, 0, 0) == osOK){
-			min_pwm = (configPWM.min_pwm)*100;
-			max_pwm = (configPWM.max_pwm)*100;
+		osMessageQueueGet(queue_data, &mode, 0 , 0);
+		if (osMessageQueueGet(queue_servo, &config, 0, 0) == osOK){
+			max_pwm = (config.max_pwm)*100;
+			min_pwm = (config.min_pwm)*100;
 		}
-		if (osSemaphoreAcquire(xSemaphore1, pdMS_TO_TICKS(50)) == osOK){
-			Start_PWM_Servo(&htim3, TIM_CHANNEL_1, max_pwm, min_pwm);
-		}
-		else if (osSemaphoreAcquire(xSemaphore2, pdMS_TO_TICKS(50)) == osOK){
-			Start_PWM_Servo(&htim3, TIM_CHANNEL_2, max_pwm, min_pwm);
-		}
-		else if (osSemaphoreAcquire(xSemaphore3, pdMS_TO_TICKS(50)) == osOK){
-			Start_PWM_Servo(&htim3, TIM_CHANNEL_3, max_pwm, min_pwm);
-		}
-		else if (osSemaphoreAcquire(xSemaphore4, pdMS_TO_TICKS(50)) == osOK){
-			Start_PWM_Servo(&htim3, TIM_CHANNEL_4, max_pwm, min_pwm);
-		}
-		else if (osSemaphoreAcquire(xSemaphore5, pdMS_TO_TICKS(50)) == osOK){
-			Start_PWM_Servo(&htim4, TIM_CHANNEL_1, max_pwm, min_pwm);
-		}
-		else if (osSemaphoreAcquire(xSemaphore6, pdMS_TO_TICKS(50)) == osOK){
-			Start_PWM_Servo(&htim4, TIM_CHANNEL_2, max_pwm, min_pwm);
-		}
-		else if (osSemaphoreAcquire(xSemaphore7, pdMS_TO_TICKS(50)) == osOK){
-			Start_PWM_Servo(&htim4, TIM_CHANNEL_3, max_pwm, min_pwm);
-		}
-		else if (osSemaphoreAcquire(xSemaphore8, pdMS_TO_TICKS(50)) == osOK){
-			Start_PWM_Servo(&htim4, TIM_CHANNEL_4, max_pwm, min_pwm);
-		}
-		else if (osSemaphoreAcquire(xSemaphore9, pdMS_TO_TICKS(50)) == osOK){
-			Start_PWM_Servo(&htim1, TIM_CHANNEL_1, max_pwm, min_pwm);
-		}
-		else if (osSemaphoreAcquire(xSemaphore10, pdMS_TO_TICKS(50)) == osOK){
-			Start_PWM_Servo(&htim1, TIM_CHANNEL_2, max_pwm, min_pwm);
-		}
-		else if (osSemaphoreAcquire(xSemaphore11, pdMS_TO_TICKS(50)) == osOK){
-			Start_PWM_Servo(&htim1, TIM_CHANNEL_3, max_pwm, min_pwm);
-		}
-		else if (osSemaphoreAcquire(xSemaphore12, pdMS_TO_TICKS(50)) == osOK){
-			Start_PWM_Servo(&htim1, TIM_CHANNEL_4, max_pwm, min_pwm);
+		switch (mode)
+		{
+			case 0:
+				break;
+			case 1:
+				Start_PWM_Servo(&htim3, TIM_CHANNEL_1, max_pwm, min_pwm);
+				break;
+			case 2:
+				Start_PWM_Servo(&htim3, TIM_CHANNEL_2, max_pwm, min_pwm);
+				break;
+			case 3:
+				Start_PWM_Servo(&htim3, TIM_CHANNEL_3, max_pwm, min_pwm);
+				break;
+			case 4:
+				Start_PWM_Servo(&htim3, TIM_CHANNEL_4, max_pwm, min_pwm);
+				break;
+			case 5:
+				Start_PWM_Servo(&htim4, TIM_CHANNEL_1, max_pwm, min_pwm);
+				break;
+			case 6:
+				Start_PWM_Servo(&htim4, TIM_CHANNEL_2, max_pwm, min_pwm);
+				break;
+			case 7:
+				Start_PWM_Servo(&htim4, TIM_CHANNEL_3, max_pwm, min_pwm);
+				break;
+			case 8:
+				Start_PWM_Servo(&htim4, TIM_CHANNEL_4, max_pwm, min_pwm);
+				break;
+			case 9:
+				Start_PWM_Servo(&htim1, TIM_CHANNEL_1, max_pwm, min_pwm);
+				break;
+			case 10:
+				Start_PWM_Servo(&htim1, TIM_CHANNEL_2, max_pwm, min_pwm);
+				break;
+			case 11:
+				Start_PWM_Servo(&htim1, TIM_CHANNEL_3, max_pwm, min_pwm);
+				break;
+			case 12:
+				Start_PWM_Servo(&htim1, TIM_CHANNEL_4, max_pwm, min_pwm);
+				break;
+			default:
+				break;
 		}
 	}
 }
