@@ -93,53 +93,55 @@ static void StartServo(void * argument){
 	uint8_t mode = 0;
 	uint16_t max_pwm = 2000, min_pwm = 1000;
 	while (1){
-		osMessageQueueGet(queue_data, &mode, 0 , 0);
+
 		if (osMessageQueueGet(queue_servo, &config, 0, 0) == osOK){
 			max_pwm = (config.max_pwm)*100;
 			min_pwm = (config.min_pwm)*100;
 		}
-		switch (mode)
-		{
-			case 0:
-				break;
-			case 1:
-				Start_PWM_Servo(&htim3, TIM_CHANNEL_1, max_pwm, min_pwm);
-				break;
-			case 2:
-				Start_PWM_Servo(&htim3, TIM_CHANNEL_2, max_pwm, min_pwm);
-				break;
-			case 3:
-				Start_PWM_Servo(&htim3, TIM_CHANNEL_3, max_pwm, min_pwm);
-				break;
-			case 4:
-				Start_PWM_Servo(&htim3, TIM_CHANNEL_4, max_pwm, min_pwm);
-				break;
-			case 5:
-				Start_PWM_Servo(&htim4, TIM_CHANNEL_1, max_pwm, min_pwm);
-				break;
-			case 6:
-				Start_PWM_Servo(&htim4, TIM_CHANNEL_2, max_pwm, min_pwm);
-				break;
-			case 7:
-				Start_PWM_Servo(&htim4, TIM_CHANNEL_3, max_pwm, min_pwm);
-				break;
-			case 8:
-				Start_PWM_Servo(&htim4, TIM_CHANNEL_4, max_pwm, min_pwm);
-				break;
-			case 9:
-				Start_PWM_Servo(&htim1, TIM_CHANNEL_1, max_pwm, min_pwm);
-				break;
-			case 10:
-				Start_PWM_Servo(&htim1, TIM_CHANNEL_2, max_pwm, min_pwm);
-				break;
-			case 11:
-				Start_PWM_Servo(&htim1, TIM_CHANNEL_3, max_pwm, min_pwm);
-				break;
-			case 12:
-				Start_PWM_Servo(&htim1, TIM_CHANNEL_4, max_pwm, min_pwm);
-				break;
-			default:
-				break;
+		if (osMessageQueueGet(queue_data, &mode, 0 , 0) == osOK){
+			switch (mode)
+			{
+				case 0:
+					break;
+				case 1:
+					Start_PWM_Servo(&htim3, TIM_CHANNEL_1, max_pwm, min_pwm);
+					break;
+				case 2:
+					Start_PWM_Servo(&htim3, TIM_CHANNEL_2, max_pwm, min_pwm);
+					break;
+				case 3:
+					Start_PWM_Servo(&htim3, TIM_CHANNEL_3, max_pwm, min_pwm);
+					break;
+				case 4:
+					Start_PWM_Servo(&htim3, TIM_CHANNEL_4, max_pwm, min_pwm);
+					break;
+				case 5:
+					Start_PWM_Servo(&htim4, TIM_CHANNEL_1, max_pwm, min_pwm);
+					break;
+				case 6:
+					Start_PWM_Servo(&htim4, TIM_CHANNEL_2, max_pwm, min_pwm);
+					break;
+				case 7:
+					Start_PWM_Servo(&htim4, TIM_CHANNEL_3, max_pwm, min_pwm);
+					break;
+				case 8:
+					Start_PWM_Servo(&htim4, TIM_CHANNEL_4, max_pwm, min_pwm);
+					break;
+				case 9:
+					Start_PWM_Servo(&htim1, TIM_CHANNEL_1, max_pwm, min_pwm);
+					break;
+				case 10:
+					Start_PWM_Servo(&htim1, TIM_CHANNEL_2, max_pwm, min_pwm);
+					break;
+				case 11:
+					Start_PWM_Servo(&htim1, TIM_CHANNEL_3, max_pwm, min_pwm);
+					break;
+				case 12:
+					Start_PWM_Servo(&htim1, TIM_CHANNEL_4, max_pwm, min_pwm);
+					break;
+				default:
+					break;
+			}
 		}
 	}
 }
