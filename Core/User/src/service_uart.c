@@ -78,10 +78,10 @@ ParseStatusType service_uart_parse(uint8_t recByte, ServiceUart *serviceUart, Re
 				serviceUart->endByte = recByte;
 				serviceUart->parseStatus = PARSE_COMPLETE;
 				*recStatus = BEGIN_BYTE;
-				return PARSE_OK;
 			}
 			break;
 	}
+	return PARSE_OK;
 }
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
